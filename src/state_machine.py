@@ -12,6 +12,7 @@ class PetState(Enum):
     FOLLOWING = auto()
     RUNNING = auto()
     EXCITED = auto()
+    DRAGGED = auto()
 
 
 class PetStateMachine:

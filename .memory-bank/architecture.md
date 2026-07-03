@@ -1,7 +1,7 @@
 # Architecture
 
 > Last updated: 2026-07-03  
-> Status: Phase 5 complete — state machine operational with mouse tracking wired in.
+> Status: Phase 6 complete — lerp motion + per-state visuals operational.
 
 ## File Purposes
 
@@ -22,11 +22,10 @@ MouseTracker (cursor pos, speed, still_duration)
        ▼
 StateMachine (IDLE / FOLLOW / RUN / EXCITED / DRAGGED)
        │
-       ▼
-PetWindow.update_position() ──► window.move(lerped_pos)
-       │
-       ▼
-PetRenderer.set_state_visual() ──► QLabel transform / scale / animation
+       ├──► PetWindow.update_position() ──► lerp: pet += (target - pet) * stiffness * dt
+       │         │
+       │         ▼
+       └──► PetRenderer.set_state_visual() ──► QLabel transform / scale / animation
 ```
 
 ## State Machine

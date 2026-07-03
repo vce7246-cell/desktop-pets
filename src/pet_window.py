@@ -1,9 +1,10 @@
 """PetWindow: a transparent, borderless, always-on-top overlay window."""
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QPoint, Qt
 from PyQt6.QtGui import QBitmap, QMouseEvent, QPixmap
 from PyQt6.QtWidgets import QVBoxLayout, QWidget
 
 from src.pet_renderer import PetRenderer
+from src.state_machine import PetState
 
 
 class PetWindow(QWidget):
@@ -37,6 +38,13 @@ class PetWindow(QWidget):
 
         # --- Center on screen ---
         self._center_on_screen()
+
+        # --- Drag state ---
+        self._dragging: bool = False
+        self._drag_offset: QPoint = QPoint(0, 0)
+
+        # --- Enable mouse tracking for move events ---
+        self.setMouseTracking(True)
 
     # ------------------------------------------------------------------
     # Mask / hit-testing
@@ -76,12 +84,46 @@ class PetWindow(QWidget):
             self.move(frame_geom.topLeft())
 
     # ------------------------------------------------------------------
+    # Drag
+    # ------------------------------------------------------------------
+
+    @property
+    def is_dragging(self) -> bool:
+        """True while the user is dragging the pet."""
+        return self._dragging
+
+    # ------------------------------------------------------------------
+    # State visual
+    # ------------------------------------------------------------------
+
+    def set_pet_state(self, state: PetState) -> None:
+        """Update the renderer's visual based on the current state."""
+        self._renderer.set_state_visual(state)
+
+    # ------------------------------------------------------------------
     # Event handlers
     # ------------------------------------------------------------------
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
-        """Log clicks that reach the window (should only be on non-transparent pixels)."""
-        print(f"Pet clicked! ({event.position().x():.0f}, {event.position().y():.0f})")
+        """Start dragging the pet on left-click."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._dragging = True
+            self._drag_offset = event.globalPosition().toPoint() - self.pos()
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+            print(f"Pet drag start @ {self.pos().x()},{self.pos().y()}")
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        """Move the pet window while dragging."""
+        if self._dragging:
+            new_pos = event.globalPosition().toPoint() - self._drag_offset
+            self.move(new_pos)
+
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        """End drag and release the pet."""
+        if event.button() == Qt.MouseButton.LeftButton and self._dragging:
+            self._dragging = False
+            self.setCursor(Qt.CursorShape.ArrowCursor)
+            print(f"Pet drag end @ {self.pos().x()},{self.pos().y()}")
 
     def closeEvent(self, event) -> None:
         """Clean up when the window is closed."""

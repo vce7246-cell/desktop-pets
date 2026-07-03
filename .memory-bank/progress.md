@@ -2,7 +2,7 @@
 
 > Last updated: 2026-07-03
 
-## Current Status: Phase 5 Complete — Validated ✓
+## Current Status: Phase 6 Complete — Validated ✓ (No auto-follow; pet stays stationary + draggable)
 
 ---
 
@@ -36,13 +36,13 @@
 
 ## Phase 6: Pet Motion
 
-- [ ] Step 6.1 — Implement lerp-based window movement
-- [ ] Step 6.2 — Motion feels smooth (no jitter)
-- [ ] Step 6.3 — Apply per-state visual feedback
+- [x] Step 6.1 — Implement lerp-based window movement
+- [x] Step 6.2 — Motion feels smooth (no jitter)
+- [x] Step 6.3 — Apply per-state visual feedback
 
 ## Phase 7: Basic Interaction
 
-- [ ] Step 7.1 — Click-and-drag to reposition pet
+- [x] Step 7.1 — Click-and-drag to reposition pet
 - [ ] Step 7.2 — System tray icon with "Quit"
 - [ ] Step 7.3 — Pet window hides on Quit with no ghost process
 

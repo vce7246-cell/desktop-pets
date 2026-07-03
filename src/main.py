@@ -40,17 +40,23 @@ def main() -> None:
         dy = cursor_pos.y() - pet_center.y()
         distance_to_pet = (dx ** 2 + dy ** 2) ** 0.5
 
-        # Feed metrics into state machine
-        new_state = state_machine.update(
-            cursor_speed=tracker.smoothed_speed,
-            distance_to_pet=distance_to_pet,
-            mouse_still_duration=tracker.still_duration,
-        )
+        # --- Determine state: drag overrides everything ---
+        if pet_window.is_dragging:
+            new_state = PetState.DRAGGED
+        else:
+            new_state = state_machine.update(
+                cursor_speed=tracker.smoothed_speed,
+                distance_to_pet=distance_to_pet,
+                mouse_still_duration=tracker.still_duration,
+            )
 
         # Print state transitions
         if new_state != _prev_state:
             print(f"[STATE] {_prev_state.name} → {new_state.name}")
             _prev_state = new_state
+
+        # Visual feedback (pet stays in place — no auto-following)
+        pet_window.set_pet_state(new_state)
 
         # Debug output every 15 ticks (~4×/sec)
         if _tick_count["n"] % 15 == 0:
