@@ -20,8 +20,8 @@
 
 ## Phase 3: Render the Pet Image
 
-- [ ] Step 3.1 — Display a static PNG on the transparent window
-- [ ] Step 3.2 — Click-through: only transparent pixels pass clicks
+- [x] Step 3.1 — Display a static PNG on the transparent window
+- [x] Step 3.2 — Click-through: only transparent pixels pass clicks
 
 ## Phase 4: Mouse Tracking
 

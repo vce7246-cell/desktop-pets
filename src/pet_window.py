@@ -1,7 +1,9 @@
 """PetWindow: a transparent, borderless, always-on-top overlay window."""
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QBitmap, QMouseEvent
-from PyQt6.QtWidgets import QWidget
+from PyQt6.QtGui import QBitmap, QMouseEvent, QPixmap
+from PyQt6.QtWidgets import QVBoxLayout, QWidget
+
+from src.pet_renderer import PetRenderer
 
 
 class PetWindow(QWidget):
@@ -23,8 +25,15 @@ class PetWindow(QWidget):
         # --- Fixed size ---
         self.setFixedSize(128, 128)
 
-        # --- Click-through mask: all-black = all clicks pass through ---
-        self._set_full_transparent_mask()
+        # --- Pet renderer (image display) ---
+        self._renderer = PetRenderer(self)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self._renderer.label)
+
+        # --- Alpha-channel mask: only non-transparent pixels block clicks ---
+        self._set_alpha_mask()
 
         # --- Center on screen ---
         self._center_on_screen()
@@ -33,10 +42,23 @@ class PetWindow(QWidget):
     # Mask / hit-testing
     # ------------------------------------------------------------------
 
-    def _set_full_transparent_mask(self) -> None:
-        """Set a mask where all pixels are transparent → all clicks pass through."""
-        mask = QBitmap(self.size())
-        mask.fill(Qt.GlobalColor.black)
+    def _set_alpha_mask(self) -> None:
+        """Set a per-pixel mask from the pet image's alpha channel.
+
+        Pixels with alpha > 0 block clicks; transparent pixels pass through.
+        """
+        pixmap: QPixmap = self._renderer.pixmap
+        if pixmap.isNull():
+            return
+
+        # Scale pixmap to window size then extract alpha channel as mask
+        scaled = pixmap.scaled(
+            self.size(), Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        mask = scaled.createMaskFromColor(
+            Qt.GlobalColor.transparent, Qt.MaskMode.MaskInColor
+        )
         self.setMask(mask)
 
     # ------------------------------------------------------------------
@@ -58,8 +80,8 @@ class PetWindow(QWidget):
     # ------------------------------------------------------------------
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
-        """Log clicks that reach the window (for debugging)."""
-        print(f"PetWindow clicked at ({event.position().x():.0f}, {event.position().y():.0f})")
+        """Log clicks that reach the window (should only be on non-transparent pixels)."""
+        print(f"Pet clicked! ({event.position().x():.0f}, {event.position().y():.0f})")
 
     def closeEvent(self, event) -> None:
         """Clean up when the window is closed."""
