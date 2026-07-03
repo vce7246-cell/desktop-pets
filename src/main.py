@@ -7,7 +7,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from PyQt6.QtCore import QTimer
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtGui import QAction, QIcon
+from PyQt6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
 from src.pet_window import PetWindow
 from src.mouse_tracker import MouseTracker
@@ -70,6 +71,28 @@ def main() -> None:
     tracker.ticked.connect(_on_tick)
     tracker.start()
 
+    # --- Clean shutdown function (Step 7.3) ---
+    def _do_clean_shutdown():
+        """Shut down cleanly: stop tracker → close window → hide tray → quit."""
+        tracker.stop()
+        pet_window.close()
+        tray_icon.hide()
+        app.quit()
+
+    # --- System tray icon (Step 7.2) ---
+    assets_dir = Path(__file__).resolve().parent / "assets"
+    tray_icon_path = str(assets_dir / "default_pet.png")
+    tray_icon = QSystemTrayIcon(QIcon(tray_icon_path), parent=app)
+
+    tray_menu = QMenu()
+    quit_action = QAction("退出 (&Q)", tray_menu)
+    quit_action.triggered.connect(_do_clean_shutdown)
+    tray_menu.addAction(quit_action)
+
+    tray_icon.setContextMenu(tray_menu)
+    tray_icon.setToolTip("桌面宠物")
+    tray_icon.show()
+
     # Ensure closeEvent fires when app quits
     app.aboutToQuit.connect(pet_window.close)
     app.aboutToQuit.connect(tracker.stop)
@@ -87,13 +110,13 @@ def main() -> None:
     def _check_shutdown():
         # Do a tiny Python operation so signals can be delivered
         if _shutdown["flag"]:
-            app.quit()
+            _do_clean_shutdown()
 
-    timer = QTimer()
-    timer.timeout.connect(_check_shutdown)
-    timer.start(100)
+    signal_timer = QTimer()
+    signal_timer.timeout.connect(_check_shutdown)
+    signal_timer.start(100)
 
-    print("Desktop Pet started. Press Ctrl+C to exit.")
+    print("桌面宠物已启动。右键托盘图标退出，或按 Ctrl+C。")
     sys.exit(app.exec())
 
 

@@ -1,7 +1,7 @@
 # Architecture
 
 > Last updated: 2026-07-03  
-> Status: Phase 6 complete — lerp motion + per-state visuals operational.
+> Status: Phase 7 complete — system tray icon + clean shutdown operational.
 
 ## File Purposes
 

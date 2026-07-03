@@ -2,7 +2,7 @@
 
 > Last updated: 2026-07-03
 
-## Current Status: Phase 6 Complete — Validated ✓ (No auto-follow; pet stays stationary + draggable)
+## Current Status: Phase 7 Complete — Validated ✓ (System tray + clean shutdown)
 
 ---
 
@@ -43,8 +43,8 @@
 ## Phase 7: Basic Interaction
 
 - [x] Step 7.1 — Click-and-drag to reposition pet
-- [ ] Step 7.2 — System tray icon with "Quit"
-- [ ] Step 7.3 — Pet window hides on Quit with no ghost process
+- [x] Step 7.2 — System tray icon with "Quit"
+- [x] Step 7.3 — Pet window hides on Quit with no ghost process
 
 ## Phase 8: Configuration Persistence
 
