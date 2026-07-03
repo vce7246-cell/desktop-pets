@@ -29,6 +29,9 @@ class MouseTracker(QObject):
         # Rolling buffer for smoothed speed (pixels/sec)
         self._speed_samples: deque[float] = deque(maxlen=self._SMOOTH_WINDOW)
 
+        # Mouse-still duration tracking (Phase 5.3)
+        self._still_duration: float = 0.0
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -38,6 +41,7 @@ class MouseTracker(QObject):
         self._current_pos = QCursor.pos()
         self._prev_pos = self._current_pos
         self._speed_samples.clear()
+        self._still_duration = 0.0
         self._timer.start()
 
     def stop(self) -> None:
@@ -72,6 +76,11 @@ class MouseTracker(QObject):
             return 0.0
         return sum(self._speed_samples) / len(self._speed_samples)
 
+    @property
+    def still_duration(self) -> float:
+        """Seconds the cursor has been near-stationary (speed < 5 px/s)."""
+        return self._still_duration
+
     # ------------------------------------------------------------------
     # Internal
     # ------------------------------------------------------------------
@@ -81,4 +90,11 @@ class MouseTracker(QObject):
         self._prev_pos = self._current_pos
         self._current_pos = QCursor.pos()
         self._speed_samples.append(self.speed)
+
+        # Update still-duration: increment when near-stationary, reset on movement
+        if self.speed < 5.0:
+            self._still_duration += 0.016
+        else:
+            self._still_duration = 0.0
+
         self.ticked.emit()

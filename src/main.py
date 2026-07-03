@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import QApplication
 
 from src.pet_window import PetWindow
 from src.mouse_tracker import MouseTracker
+from src.state_machine import PetStateMachine, PetState
 
 
 def main() -> None:
@@ -21,19 +22,43 @@ def main() -> None:
     pet_window = PetWindow()
     pet_window.show()
 
-    # --- Mouse tracker (Phase 4 — debug output for validation) ---
+    # --- Mouse tracker + State machine (Phase 5) ---
     tracker = MouseTracker()
+    state_machine = PetStateMachine()
 
     _tick_count = {"n": 0}
+    _prev_state = state_machine.current_state
 
     def _on_tick():
         _tick_count["n"] += 1
-        # Print every 15 ticks (~4×/sec) to avoid flooding the terminal
+        nonlocal _prev_state
+
+        # Compute distance from cursor to pet window centre
+        pet_center = pet_window.frameGeometry().center()
+        cursor_pos = tracker.current_pos
+        dx = cursor_pos.x() - pet_center.x()
+        dy = cursor_pos.y() - pet_center.y()
+        distance_to_pet = (dx ** 2 + dy ** 2) ** 0.5
+
+        # Feed metrics into state machine
+        new_state = state_machine.update(
+            cursor_speed=tracker.smoothed_speed,
+            distance_to_pet=distance_to_pet,
+            mouse_still_duration=tracker.still_duration,
+        )
+
+        # Print state transitions
+        if new_state != _prev_state:
+            print(f"[STATE] {_prev_state.name} → {new_state.name}")
+            _prev_state = new_state
+
+        # Debug output every 15 ticks (~4×/sec)
         if _tick_count["n"] % 15 == 0:
             print(
-                f"[TRACKER] delta={tracker.delta:5.1f} px  "
-                f"speed={tracker.speed:6.0f} px/s  "
-                f"smoothed={tracker.smoothed_speed:6.0f} px/s"
+                f"[TRACKER] speed={tracker.smoothed_speed:6.0f} px/s  "
+                f"dist={distance_to_pet:5.0f} px  "
+                f"still={tracker.still_duration:4.1f}s  "
+                f"state={new_state.name}"
             )
 
     tracker.ticked.connect(_on_tick)

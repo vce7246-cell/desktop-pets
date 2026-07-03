@@ -2,7 +2,7 @@
 
 > Last updated: 2026-07-03
 
-## Current Status: Phase 4 Complete — Validated ✓
+## Current Status: Phase 5 Complete — Validated ✓
 
 ---
 
@@ -30,9 +30,9 @@
 
 ## Phase 5: State Machine
 
-- [ ] Step 5.1 — Define the 4 base states and transitions
-- [ ] Step 5.2 — Wire MouseTracker into StateMachine
-- [ ] Step 5.3 — Track mouse-still duration
+- [x] Step 5.1 — Define the 4 base states and transitions
+- [x] Step 5.2 — Wire MouseTracker into StateMachine
+- [x] Step 5.3 — Track mouse-still duration
 
 ## Phase 6: Pet Motion
 

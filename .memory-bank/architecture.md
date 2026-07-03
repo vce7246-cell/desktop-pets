@@ -1,7 +1,7 @@
 # Architecture
 
 > Last updated: 2026-07-03  
-> Status: Pre-implementation — modules defined but not yet built.
+> Status: Phase 5 complete — state machine operational with mouse tracking wired in.
 
 ## File Purposes
 
