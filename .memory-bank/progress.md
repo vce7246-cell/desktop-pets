@@ -2,23 +2,21 @@
 
 > Last updated: 2026-07-03
 
-## Current Status: Phase 0 — Pre-implementation
-
-No steps completed yet.
+## Current Status: Phase 2 Complete — Awaiting Validation
 
 ---
 
 ## Phase 1: Project Skeleton
 
-- [ ] Step 1.1 — Create virtual environment and install dependencies
-- [ ] Step 1.2 — Create directory structure and empty modules
-- [ ] Step 1.3 — Skeleton main.py: QApplication starts and exits cleanly
+- [x] Step 1.1 — Create virtual environment and install dependencies
+- [x] Step 1.2 — Create directory structure and empty modules
+- [x] Step 1.3 — Skeleton main.py: QApplication starts and exits cleanly
 
 ## Phase 2: Invisible Pet Window
 
-- [ ] Step 2.1 — Transparent, borderless, always-on-top window
-- [ ] Step 2.2 — Click-through on transparent areas
-- [ ] Step 2.3 — Window closes cleanly via Ctrl+C
+- [x] Step 2.1 — Transparent, borderless, always-on-top window
+- [x] Step 2.2 — Click-through on transparent areas
+- [x] Step 2.3 — Window closes cleanly via Ctrl+C
 
 ## Phase 3: Render the Pet Image
 
