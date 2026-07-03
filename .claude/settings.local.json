@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -c \"from src.main import main; from src.pet_window import PetWindow; from src.state_machine import PetStateMachine, PetState; from src.pet_renderer import PetRenderer; from src.mouse_tracker import MouseTracker; from src.config import Config; print\\('All modules importable'\\)\")"
+      "Bash(python -c \"from src.main import main; from src.pet_window import PetWindow; from src.state_machine import PetStateMachine, PetState; from src.pet_renderer import PetRenderer; from src.mouse_tracker import MouseTracker; from src.config import Config; print\\('All modules importable'\\)\")",
+      "Bash(venv/Scripts/pip.exe install *)"
     ]
   }
 }

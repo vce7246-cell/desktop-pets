@@ -8,9 +8,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtWidgets import QApplication, QFileDialog, QMenu, QSystemTrayIcon
+from PyQt6.QtWidgets import (
+    QApplication, QFileDialog, QMenu, QMessageBox, QSystemTrayIcon,
+)
 
 from src.config import Config
+from src.image_processor import BackgroundRemover, make_output_path
 from src.pet_window import PetWindow
 from src.mouse_tracker import MouseTracker
 from src.state_machine import PetStateMachine, PetState
@@ -135,6 +138,46 @@ def main() -> None:
     change_action = QAction("更换宠物 (&C)…", tray_menu)
     change_action.triggered.connect(_change_pet)
     tray_menu.addAction(change_action)
+
+    # --- Remove background action ---
+    def _remove_background():
+        current_path = pet_window.current_image_path
+
+        # Guard: don't process the built-in default pet
+        if current_path == str(assets_dir / "default_pet.png"):
+            QMessageBox.information(None, "提示", "默认宠物图片无需去除背景。")
+            return
+
+        if not Path(current_path).is_file():
+            QMessageBox.warning(None, "去除背景失败", "当前图片文件不存在，请先更换宠物图片。")
+            return
+
+        output_path = make_output_path(current_path)
+
+        remover = BackgroundRemover(current_path, output_path, parent=app)
+        tray_icon.setToolTip("桌面宠物 — 正在去除背景…")
+
+        def _on_finished(path: str):
+            pet_window.set_image(path)
+            config.save_image_path(path)
+            tray_icon.setToolTip("桌面宠物")
+            tray_icon.showMessage(
+                "桌面宠物", "背景去除完成！", QSystemTrayIcon.MessageIcon.Information, 3000,
+            )
+            print(f"[REMOVE_BG] Done → {path}")
+
+        def _on_error(msg: str):
+            tray_icon.setToolTip("桌面宠物")
+            QMessageBox.warning(None, "去除背景失败", msg)
+            print(f"[REMOVE_BG] Error: {msg}")
+
+        remover.finished.connect(_on_finished)
+        remover.error.connect(_on_error)
+        remover.start()
+
+    remove_bg_action = QAction("去除背景 (&R)…", tray_menu)
+    remove_bg_action.triggered.connect(_remove_background)
+    tray_menu.addAction(remove_bg_action)
 
     tray_menu.addSeparator()
 

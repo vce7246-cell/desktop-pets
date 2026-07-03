@@ -1,4 +1,6 @@
 """PetWindow: a transparent, borderless, always-on-top overlay window."""
+from pathlib import Path
+
 from PyQt6.QtCore import QPoint, Qt, pyqtSignal
 from PyQt6.QtGui import QBitmap, QMouseEvent, QPixmap, QWheelEvent
 from PyQt6.QtWidgets import QVBoxLayout, QWidget
@@ -32,6 +34,13 @@ class PetWindow(QWidget):
 
         # --- Transparent background ---
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+
+        # --- Resolve default pet path (same logic as PetRenderer's fallback) ---
+        if image_path is None:
+            image_path = str(
+                Path(__file__).resolve().parent / "assets" / "default_pet.png"
+            )
+        self._current_image_path = image_path
 
         # --- Fixed size ---
         self._size = initial_size
@@ -107,8 +116,14 @@ class PetWindow(QWidget):
         """Return the window's current top-left (x, y) in screen coordinates."""
         return self.x(), self.y()
 
+    @property
+    def current_image_path(self) -> str:
+        """Path to the currently displayed pet image file."""
+        return self._current_image_path
+
     def set_image(self, image_path: str) -> None:
         """Replace the pet image and refresh the click-through mask."""
+        self._current_image_path = image_path
         self._renderer.set_image(image_path)
         self._set_alpha_mask()
 
