@@ -2,7 +2,7 @@
 
 > Last updated: 2026-07-03
 
-## Current Status: Phase 7 Complete — Validated ✓ (System tray + clean shutdown)
+## Current Status: Phase 8 Complete — Validated ✓ (Config persistence)
 
 ---
 
@@ -48,5 +48,5 @@
 
 ## Phase 8: Configuration Persistence
 
-- [ ] Step 8.1 — Save and load pet position on exit/startup
-- [ ] Step 8.2 — Save and load pet image path
+- [x] Step 8.1 — Save and load pet position on exit/startup
+- [x] Step 8.2 — Save and load pet image path

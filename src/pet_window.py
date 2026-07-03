@@ -10,7 +10,7 @@ from src.state_machine import PetState
 class PetWindow(QWidget):
     """A transparent window that floats above all others and displays the pet."""
 
-    def __init__(self) -> None:
+    def __init__(self, image_path: str | None = None) -> None:
         super().__init__()
 
         # --- Window flags: frameless, always-on-top, no taskbar entry ---
@@ -27,7 +27,7 @@ class PetWindow(QWidget):
         self.setFixedSize(128, 128)
 
         # --- Pet renderer (image display) ---
-        self._renderer = PetRenderer(self)
+        self._renderer = PetRenderer(self, image_path=image_path)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -36,7 +36,7 @@ class PetWindow(QWidget):
         # --- Alpha-channel mask: only non-transparent pixels block clicks ---
         self._set_alpha_mask()
 
-        # --- Center on screen ---
+        # --- Position: center on screen (caller may override via set_position) ---
         self._center_on_screen()
 
         # --- Drag state ---
@@ -82,6 +82,14 @@ class PetWindow(QWidget):
             frame_geom = self.frameGeometry()
             frame_geom.moveCenter(center)
             self.move(frame_geom.topLeft())
+
+    def set_position(self, x: int, y: int) -> None:
+        """Move the window to the given screen coordinates."""
+        self.move(x, y)
+
+    def get_position(self) -> tuple[int, int]:
+        """Return the window's current top-left (x, y) in screen coordinates."""
+        return self.x(), self.y()
 
     # ------------------------------------------------------------------
     # Drag

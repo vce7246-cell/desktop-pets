@@ -1,7 +1,7 @@
 # Architecture
 
 > Last updated: 2026-07-03  
-> Status: Phase 7 complete — system tray icon + clean shutdown operational.
+> Status: Phase 8 complete — config persistence (position + image path) operational. All 9 milestones done.
 
 ## File Purposes
 
@@ -12,7 +12,7 @@
 | `src/state_machine.py` | PetStateMachine: pure logic — reads cursor state → emits state transitions (IDLE/FOLLOW/RUN/EXCITED/DRAGGED) |
 | `src/pet_renderer.py` | PetRenderer: QLabel + QPixmap/QMovie for static/GIF display, per-state visual transforms |
 | `src/mouse_tracker.py` | MouseTracker: QTimer (16ms) polling QCursor.pos(), computes speed, delta, still_duration |
-| `src/config.py` | Config: QSettings wrapper — pet image path, window position, size persistence |
+| `src/config.py` | Config: QSettings("DesktopPet", "settings") wrapper — save/load position (pet/x, pet/y) and image path (pet/image_path) |
 
 ## Data Flow
 

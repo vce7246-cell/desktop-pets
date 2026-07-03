@@ -10,6 +10,7 @@ from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
+from src.config import Config
 from src.pet_window import PetWindow
 from src.mouse_tracker import MouseTracker
 from src.state_machine import PetStateMachine, PetState
@@ -20,7 +21,22 @@ def main() -> None:
     app.setApplicationName("DesktopPet")
     app.setQuitOnLastWindowClosed(False)
 
-    pet_window = PetWindow()
+    # --- Config persistence ---
+    config = Config()
+
+    # Load saved image path; fall back to default if missing or unreadable
+    image_path = config.load_image_path()
+    if image_path is not None and not Path(image_path).is_file():
+        print(f"[CONFIG] Saved image not found: {image_path} — using default.")
+        image_path = None
+
+    pet_window = PetWindow(image_path=image_path)
+
+    # Restore saved position (if available)
+    saved_x, saved_y = config.load_position()
+    if saved_x is not None and saved_y is not None:
+        pet_window.set_position(saved_x, saved_y)
+
     pet_window.show()
 
     # --- Mouse tracker + State machine (Phase 5) ---
@@ -73,7 +89,12 @@ def main() -> None:
 
     # --- Clean shutdown function (Step 7.3) ---
     def _do_clean_shutdown():
-        """Shut down cleanly: stop tracker → close window → hide tray → quit."""
+        """Shut down cleanly: save position → stop tracker → close window → hide tray → quit."""
+        # Save current pet position before closing
+        px, py = pet_window.get_position()
+        config.save_position(px, py)
+        print(f"[CONFIG] Position saved: ({px}, {py})")
+
         tracker.stop()
         pet_window.close()
         tray_icon.hide()

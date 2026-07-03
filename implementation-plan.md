@@ -227,19 +227,19 @@
 
 ### Step 8.1 — Config: save and load pet position on exit/startup
 
-- [ ] In `config.py`, create a `Config` class wrapping `QSettings("DesktopPet", "settings")`.
-- [ ] On app startup, read saved `pet_x`, `pet_y` (integers). If not found, default to screen center.
-- [ ] Apply position to `PetWindow` before `.show()`.
-- [ ] On app exit (in `closeEvent` or a shutdown hook), write current `pet.x()`, `pet.y()` to `QSettings`.
+- [x] In `config.py`, create a `Config` class wrapping `QSettings("DesktopPet", "settings")`.
+- [x] On app startup, read saved `pet_x`, `pet_y` (integers). If not found, default to screen center.
+- [x] Apply position to `PetWindow` before `.show()`.
+- [x] On app exit (in `closeEvent` or a shutdown hook), write current `pet.x()`, `pet.y()` to `QSettings`.
 
 **Test:** Run the app. Drag pet to bottom-right corner. Quit. Run again. Pet appears at bottom-right corner. Delete settings (or run on fresh machine) → pet defaults to screen center.
 
 ### Step 8.2 — Config: save and load pet image path
 
-- [ ] `Config` stores `pet_image_path` as a string.
-- [ ] On startup, if the path exists and file is readable, load it as the pet image.
-- [ ] If path is empty or file missing, fall back to `default_pet.png`.
-- [ ] `PetRenderer` accepts an optional path override in `__init__`.
+- [x] `Config` stores `pet_image_path` as a string.
+- [x] On startup, if the path exists and file is readable, load it as the pet image.
+- [x] If path is empty or file missing, fall back to `default_pet.png`.
+- [x] `PetRenderer` accepts an optional path override in `__init__`.
 
 **Test:** Manually set settings to a different PNG path. Run → pet shows that image. Delete the file at that path → run again → pet shows default. No crash, no error dialog.
 
