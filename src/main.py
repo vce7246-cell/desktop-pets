@@ -39,6 +39,9 @@ def main() -> None:
 
     pet_window.show()
 
+    # --- Persist image path when changed via drag & drop ---
+    pet_window.pet_image_changed.connect(config.save_image_path)
+
     # --- Mouse tracker + State machine (Phase 5) ---
     tracker = MouseTracker()
     state_machine = PetStateMachine()

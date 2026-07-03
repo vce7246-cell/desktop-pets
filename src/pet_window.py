@@ -1,5 +1,5 @@
 """PetWindow: a transparent, borderless, always-on-top overlay window."""
-from PyQt6.QtCore import QPoint, Qt
+from PyQt6.QtCore import QPoint, Qt, pyqtSignal
 from PyQt6.QtGui import QBitmap, QMouseEvent, QPixmap
 from PyQt6.QtWidgets import QVBoxLayout, QWidget
 
@@ -9,6 +9,9 @@ from src.state_machine import PetState
 
 class PetWindow(QWidget):
     """A transparent window that floats above all others and displays the pet."""
+
+    # Emitted when the user drops a new image onto the pet window
+    pet_image_changed = pyqtSignal(str)
 
     def __init__(self, image_path: str | None = None) -> None:
         super().__init__()
@@ -45,6 +48,9 @@ class PetWindow(QWidget):
 
         # --- Enable mouse tracking for move events ---
         self.setMouseTracking(True)
+
+        # --- Accept drag & drop of image files ---
+        self.setAcceptDrops(True)
 
     # ------------------------------------------------------------------
     # Mask / hit-testing
@@ -116,6 +122,29 @@ class PetWindow(QWidget):
     # ------------------------------------------------------------------
     # Event handlers
     # ------------------------------------------------------------------
+
+    def dragEnterEvent(self, event) -> None:
+        """Accept the drag if it contains a local image file URL."""
+        if event.mimeData().hasUrls():
+            for url in event.mimeData().urls():
+                if url.isLocalFile():
+                    path_lower = url.toLocalFile().lower()
+                    if path_lower.endswith((".png", ".jpg", ".jpeg", ".gif", ".webp")):
+                        event.acceptProposedAction()
+                        return
+        event.ignore()
+
+    def dropEvent(self, event) -> None:
+        """Replace the pet image with the dropped file."""
+        if event.mimeData().hasUrls():
+            for url in event.mimeData().urls():
+                if url.isLocalFile():
+                    file_path = url.toLocalFile()
+                    if file_path.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp")):
+                        self.set_image(file_path)
+                        self.pet_image_changed.emit(file_path)
+                        print(f"[DROP] Pet image changed: {file_path}")
+                        return
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         """Start dragging the pet on left-click."""

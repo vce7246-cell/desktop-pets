@@ -57,7 +57,7 @@
 
 ## Phase 10: Drag & Drop Image
 
-- [ ] Step 10.1 — Accept image file drops on pet window
+- [x] Step 10.1 — Accept image file drops on pet window
 
 ## Phase 11: Scroll Wheel Resize
 
