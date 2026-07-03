@@ -29,6 +29,19 @@ class Config:
         return None, None
 
     # ------------------------------------------------------------------
+    # Scale
+    # ------------------------------------------------------------------
+
+    def save_scale(self, scale: float) -> None:
+        """Persist the pet's size multiplier (1.0 = 128 px base)."""
+        self._settings.setValue("pet/scale", scale)
+
+    def load_scale(self) -> float:
+        """Return the saved scale, or 1.0 (default) if never set."""
+        scale = self._settings.value("pet/scale")
+        return float(scale) if scale is not None else 1.0
+
+    # ------------------------------------------------------------------
     # Image path
     # ------------------------------------------------------------------
 

@@ -2,7 +2,7 @@
 
 > Last updated: 2026-07-03
 
-## Current Status: Phase 9 Complete ✓ (Tray menu file picker) — Phase 10 next
+## Current Status: Phase 11 Complete ✓ (Scroll wheel resize) — Phase 12 next
 
 ---
 
@@ -61,7 +61,7 @@
 
 ## Phase 11: Scroll Wheel Resize
 
-- [ ] Step 11.1 — Resize pet via mouse scroll wheel
+- [x] Step 11.1 — Resize pet via mouse scroll wheel
 
 ## Phase 12: PyInstaller Packaging
 

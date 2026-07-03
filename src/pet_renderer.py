@@ -12,9 +12,17 @@ from src.state_machine import PetState
 class PetRenderer:
     """Owns a QLabel that displays the pet image with per-state visual transforms."""
 
-    def __init__(self, parent, image_path: str | None = None) -> None:
+    DEFAULT_SIZE = 128
+
+    def __init__(
+        self, parent, image_path: str | None = None, size: int = DEFAULT_SIZE,
+    ) -> None:
         self._label = QLabel(parent)
         self._label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Current base render size (no longer hardcoded — adjustable via set_size)
+        self._base_w = size
+        self._base_h = size
 
         if image_path is None:
             image_path = str(
@@ -24,9 +32,9 @@ class PetRenderer:
         # Keep the original pixmap untouched — all transforms derive from this.
         self._source = QPixmap(image_path)
 
-        # Display pixmap (initially scale source to fill the 128×128 window).
+        # Display pixmap (initially scale source to fill the base size).
         self._display = self._source.scaled(
-            128, 128,
+            self._base_w, self._base_h,
             Qt.AspectRatioMode.KeepAspectRatio,
             Qt.TransformationMode.SmoothTransformation,
         )
@@ -53,12 +61,23 @@ class PetRenderer:
         """Replace the pet image with a new file (PNG, JPG, GIF, WebP)."""
         self._source = QPixmap(image_path)
         self._display = self._source.scaled(
-            128, 128,
+            self._base_w, self._base_h,
             Qt.AspectRatioMode.KeepAspectRatio,
             Qt.TransformationMode.SmoothTransformation,
         )
         self._label.setPixmap(self._display)
         self._anim_time = 0.0
+
+    def set_size(self, w: int, h: int) -> None:
+        """Change the base render size and re-scale the display pixmap."""
+        self._base_w = w
+        self._base_h = h
+        self._display = self._source.scaled(
+            w, h,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        self._label.setPixmap(self._display)
 
     def set_state_visual(self, state: PetState, dt: float = 0.016) -> None:
         """Apply per-state visual transform to the pet image.

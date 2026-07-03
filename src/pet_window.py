@@ -1,6 +1,6 @@
 """PetWindow: a transparent, borderless, always-on-top overlay window."""
 from PyQt6.QtCore import QPoint, Qt, pyqtSignal
-from PyQt6.QtGui import QBitmap, QMouseEvent, QPixmap
+from PyQt6.QtGui import QBitmap, QMouseEvent, QPixmap, QWheelEvent
 from PyQt6.QtWidgets import QVBoxLayout, QWidget
 
 from src.pet_renderer import PetRenderer
@@ -10,10 +10,17 @@ from src.state_machine import PetState
 class PetWindow(QWidget):
     """A transparent window that floats above all others and displays the pet."""
 
+    # The reference size at scale = 1.0
+    BASE_SIZE = 128
+    MIN_SIZE = 32
+    MAX_SIZE = 512
+
     # Emitted when the user drops a new image onto the pet window
     pet_image_changed = pyqtSignal(str)
 
-    def __init__(self, image_path: str | None = None) -> None:
+    def __init__(
+        self, image_path: str | None = None, initial_size: int = BASE_SIZE,
+    ) -> None:
         super().__init__()
 
         # --- Window flags: frameless, always-on-top, no taskbar entry ---
@@ -27,10 +34,13 @@ class PetWindow(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
 
         # --- Fixed size ---
-        self.setFixedSize(128, 128)
+        self._size = initial_size
+        self.setFixedSize(initial_size, initial_size)
 
         # --- Pet renderer (image display) ---
-        self._renderer = PetRenderer(self, image_path=image_path)
+        self._renderer = PetRenderer(
+            self, image_path=image_path, size=initial_size,
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -118,6 +128,44 @@ class PetWindow(QWidget):
     def set_pet_state(self, state: PetState) -> None:
         """Update the renderer's visual based on the current state."""
         self._renderer.set_state_visual(state)
+
+    # ------------------------------------------------------------------
+    # Size / scale
+    # ------------------------------------------------------------------
+
+    @property
+    def scale(self) -> float:
+        """Current scale multiplier (1.0 = 128 px base size)."""
+        return self._size / self.BASE_SIZE
+
+    def set_scale(self, scale: float) -> None:
+        """Set the pet size from a scale multiplier, clamped to [32, 512]."""
+        new_size = int(self.BASE_SIZE * scale)
+        new_size = max(self.MIN_SIZE, min(self.MAX_SIZE, new_size))
+        self._apply_resize(new_size)
+
+    def _apply_resize(self, new_size: int) -> None:
+        """Internal: resize window + renderer + mask to a new square size."""
+        if new_size == self._size:
+            return
+        self._size = new_size
+        self.setFixedSize(new_size, new_size)
+        self._renderer.set_size(new_size, new_size)
+        self._set_alpha_mask()
+
+    def wheelEvent(self, event: QWheelEvent) -> None:
+        """Resize the pet on mouse scroll (±10% per step)."""
+        delta = event.angleDelta().y()
+        if delta > 0:
+            new_size = int(self._size * 1.10)
+        elif delta < 0:
+            new_size = int(self._size * 0.90)
+        else:
+            return
+
+        new_size = max(self.MIN_SIZE, min(self.MAX_SIZE, new_size))
+        self._apply_resize(new_size)
+        event.accept()
 
     # ------------------------------------------------------------------
     # Event handlers

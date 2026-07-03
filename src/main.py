@@ -30,7 +30,12 @@ def main() -> None:
         print(f"[CONFIG] Saved image not found: {image_path} — using default.")
         image_path = None
 
-    pet_window = PetWindow(image_path=image_path)
+    # Load saved scale; compute initial pixel size
+    saved_scale = config.load_scale()
+    initial_size = int(PetWindow.BASE_SIZE * saved_scale)
+    print(f"[CONFIG] Scale loaded: {saved_scale:.2f} → {initial_size}×{initial_size} px")
+
+    pet_window = PetWindow(image_path=image_path, initial_size=initial_size)
 
     # Restore saved position (if available)
     saved_x, saved_y = config.load_position()
@@ -92,11 +97,15 @@ def main() -> None:
 
     # --- Clean shutdown function (Step 7.3) ---
     def _do_clean_shutdown():
-        """Shut down cleanly: save position → stop tracker → close window → hide tray → quit."""
+        """Shut down cleanly: save position + scale → stop tracker → close window → hide tray → quit."""
         # Save current pet position before closing
         px, py = pet_window.get_position()
         config.save_position(px, py)
         print(f"[CONFIG] Position saved: ({px}, {py})")
+
+        # Save current scale
+        config.save_scale(pet_window.scale)
+        print(f"[CONFIG] Scale saved: {pet_window.scale:.2f}")
 
         tracker.stop()
         pet_window.close()
