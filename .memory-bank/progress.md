@@ -2,7 +2,7 @@
 
 > Last updated: 2026-07-03
 
-## Current Status: Phase 2 Complete — Awaiting Validation
+## Current Status: Phase 4 Complete — Validated ✓
 
 ---
 
@@ -25,8 +25,8 @@
 
 ## Phase 4: Mouse Tracking
 
-- [ ] Step 4.1 — Poll global cursor position at 60 Hz
-- [ ] Step 4.2 — Compute cursor speed (pixels per second)
+- [x] Step 4.1 — Poll global cursor position at 60 Hz
+- [x] Step 4.2 — Compute cursor speed (pixels per second)
 
 ## Phase 5: State Machine
 

@@ -10,6 +10,7 @@ from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QApplication
 
 from src.pet_window import PetWindow
+from src.mouse_tracker import MouseTracker
 
 
 def main() -> None:
@@ -20,8 +21,27 @@ def main() -> None:
     pet_window = PetWindow()
     pet_window.show()
 
+    # --- Mouse tracker (Phase 4 — debug output for validation) ---
+    tracker = MouseTracker()
+
+    _tick_count = {"n": 0}
+
+    def _on_tick():
+        _tick_count["n"] += 1
+        # Print every 15 ticks (~4×/sec) to avoid flooding the terminal
+        if _tick_count["n"] % 15 == 0:
+            print(
+                f"[TRACKER] delta={tracker.delta:5.1f} px  "
+                f"speed={tracker.speed:6.0f} px/s  "
+                f"smoothed={tracker.smoothed_speed:6.0f} px/s"
+            )
+
+    tracker.ticked.connect(_on_tick)
+    tracker.start()
+
     # Ensure closeEvent fires when app quits
     app.aboutToQuit.connect(pet_window.close)
+    app.aboutToQuit.connect(tracker.stop)
 
     # --- Ctrl+C handling on Windows ---
     # Qt's event loop blocks Python signal delivery. A periodic QTimer
