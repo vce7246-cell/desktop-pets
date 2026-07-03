@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
 
 from src.config import Config
 from src.image_processor import BackgroundRemover, make_output_path
+from src.pet_status import PetStatusEngine
 from src.pet_window import PetWindow
 from src.mouse_tracker import MouseTracker
 from src.state_machine import PetStateMachine, PetState
@@ -53,6 +54,12 @@ def main() -> None:
     # --- Mouse tracker + State machine (Phase 5) ---
     tracker = MouseTracker()
     state_machine = PetStateMachine()
+
+    # --- Pet status engine (hunger / foraging) ---
+    status_engine = PetStatusEngine()
+
+    # Double-click pet → feed (for testing the status engine)
+    pet_window.feed_requested.connect(status_engine.feed_pet)
 
     _tick_count = {"n": 0}
     _prev_state = state_machine.current_state

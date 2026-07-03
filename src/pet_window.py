@@ -20,6 +20,9 @@ class PetWindow(QWidget):
     # Emitted when the user drops a new image onto the pet window
     pet_image_changed = pyqtSignal(str)
 
+    # Emitted when the user double-clicks the pet (→ feed)
+    feed_requested = pyqtSignal()
+
     def __init__(
         self, image_path: str | None = None, initial_size: int = BASE_SIZE,
     ) -> None:
@@ -229,6 +232,12 @@ class PetWindow(QWidget):
             self._dragging = False
             self.setCursor(Qt.CursorShape.ArrowCursor)
             print(f"Pet drag end @ {self.pos().x()},{self.pos().y()}")
+
+    def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
+        """Feed the pet on double-click (for testing the status engine)."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.feed_requested.emit()
+            event.accept()
 
     def closeEvent(self, event) -> None:
         """Clean up when the window is closed."""

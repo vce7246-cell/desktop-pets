@@ -2,7 +2,17 @@
 
 > Last updated: 2026-07-03
 
-## Current Status: Phase 11 Complete ✓ (Scroll wheel resize) — Phase 12 next
+## Current Status: 状态管理引擎已植入 ✓ — Phase 12（打包）待做
+
+---
+
+## 🆕 状态管理引擎 (PetStatusEngine)
+
+- [x] `src/pet_status.py` — PetStatusEngine 类：hunger (0-100), state (normal/foraging)
+- [x] QTimer 每 10s：hunger -= 2 → update_state()
+- [x] `feed_pet()`: hunger += 30 (max 100) → update_state() → print
+- [x] 双击宠物 → feed_requested 信号 → feed_pet()
+- [x] 状态变更时终端打印 `[状态变更]` / `[喂食]`
 
 ---
 
