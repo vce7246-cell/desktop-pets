@@ -49,6 +49,17 @@ class PetRenderer:
         """Current display pixmap (used by PetWindow for the alpha mask)."""
         return self._display
 
+    def set_image(self, image_path: str) -> None:
+        """Replace the pet image with a new file (PNG, JPG, GIF, WebP)."""
+        self._source = QPixmap(image_path)
+        self._display = self._source.scaled(
+            128, 128,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        self._label.setPixmap(self._display)
+        self._anim_time = 0.0
+
     def set_state_visual(self, state: PetState, dt: float = 0.016) -> None:
         """Apply per-state visual transform to the pet image.
 

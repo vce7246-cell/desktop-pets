@@ -91,6 +91,11 @@ class PetWindow(QWidget):
         """Return the window's current top-left (x, y) in screen coordinates."""
         return self.x(), self.y()
 
+    def set_image(self, image_path: str) -> None:
+        """Replace the pet image and refresh the click-through mask."""
+        self._renderer.set_image(image_path)
+        self._set_alpha_mask()
+
     # ------------------------------------------------------------------
     # Drag
     # ------------------------------------------------------------------

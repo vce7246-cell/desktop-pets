@@ -2,7 +2,7 @@
 
 > Last updated: 2026-07-03
 
-## Current Status: Phase 8 Complete — Validated ✓ (Config persistence)
+## Current Status: Phase 9 Complete ✓ (Tray menu file picker) — Phase 10 next
 
 ---
 
@@ -50,3 +50,19 @@
 
 - [x] Step 8.1 — Save and load pet position on exit/startup
 - [x] Step 8.2 — Save and load pet image path
+
+## Phase 9: Change Pet Image (Tray Menu)
+
+- [x] Step 9.1 — File picker via tray menu "更换宠物"
+
+## Phase 10: Drag & Drop Image
+
+- [ ] Step 10.1 — Accept image file drops on pet window
+
+## Phase 11: Scroll Wheel Resize
+
+- [ ] Step 11.1 — Resize pet via mouse scroll wheel
+
+## Phase 12: PyInstaller Packaging
+
+- [ ] Step 12.1 — Single-file executable build

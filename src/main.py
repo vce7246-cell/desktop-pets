@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
+from PyQt6.QtWidgets import QApplication, QFileDialog, QMenu, QSystemTrayIcon
 
 from src.config import Config
 from src.pet_window import PetWindow
@@ -106,6 +106,26 @@ def main() -> None:
     tray_icon = QSystemTrayIcon(QIcon(tray_icon_path), parent=app)
 
     tray_menu = QMenu()
+
+    # Change Pet action
+    def _change_pet():
+        file_path, _ = QFileDialog.getOpenFileName(
+            None,
+            "选择宠物图片",
+            "",
+            "图片文件 (*.png *.jpg *.jpeg *.gif *.webp);;所有文件 (*.*)",
+        )
+        if file_path:
+            pet_window.set_image(file_path)
+            config.save_image_path(file_path)
+            print(f"[CONFIG] Image path saved: {file_path}")
+
+    change_action = QAction("更换宠物 (&C)…", tray_menu)
+    change_action.triggered.connect(_change_pet)
+    tray_menu.addAction(change_action)
+
+    tray_menu.addSeparator()
+
     quit_action = QAction("退出 (&Q)", tray_menu)
     quit_action.triggered.connect(_do_clean_shutdown)
     tray_menu.addAction(quit_action)

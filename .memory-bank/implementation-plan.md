@@ -1,6 +1,6 @@
 # Implementation Plan: Desktop Pet — Base Game
 
-> **Target:** v0.1 → v0.3 (invisible window → alive pet with mouse interaction)  
+> **Target:** v0.1 → v1.0 (invisible window → full-featured desktop pet)  
 > **Stack:** Python 3.11+ / PyQt6  
 > **Source of truth:** [.game-design-document.md](.game-design-document.md) §4, §7; [.tech-stack.md](.tech-stack.md)
 
@@ -248,6 +248,62 @@
 
 ---
 
+## Phase 9: Change Pet Image (Tray Menu)
+
+### Step 9.1 — File picker via tray menu "更换宠物"
+
+- [x] In `pet_renderer.py`, add `set_image(image_path)` method: load new `QPixmap`, replace `_source` + `_display`, update label, reset animation time.
+- [x] In `pet_window.py`, add `set_image(image_path)` method: delegate to renderer then call `_set_alpha_mask()` to refresh click-through mask.
+- [x] In `main.py`, add `QFileDialog` import, create `_change_pet()` slot that opens file picker filtered by `*.png *.jpg *.jpeg *.gif *.webp`, calls `pet_window.set_image()` and `config.save_image_path()`.
+- [x] Add "更换宠物 (&C)…" action to tray menu with a separator before "退出".
+
+**Test:** Right-click tray icon → "更换宠物…" opens file dialog. Select PNG → pet changes instantly, click-through mask updates. Quit → restart → pet loads last-selected image.
+
+---
+
+## Phase 10: Drag & Drop Image
+
+### Step 10.1 — Accept image file drops on pet window
+
+- [ ] In `PetWindow`, call `setAcceptDrops(True)`.
+- [ ] Override `dragEnterEvent`: accept if mime data contains a local file URL ending with `.png/.jpg/.jpeg/.gif/.webp`.
+- [ ] Override `dropEvent`: extract file path, call `self.set_image(path)`, emit a signal or callback so `main.py` can save the path to config.
+- [ ] `PetWindow` emits a `pet_image_changed(str)` signal (or a simple callback) so `main.py` persists the new path.
+
+**Test:** Drag a PNG from File Explorer onto the pet window → pet image updates. Quit → restart → new image persists.
+
+---
+
+## Phase 11: Scroll Wheel Resize
+
+### Step 11.1 — Resize pet via mouse scroll wheel
+
+- [ ] In `PetWindow`, override `wheelEvent`.
+- [ ] On scroll up: increase pet size by 10%. On scroll down: decrease by 10%.
+- [ ] Clamp size between 32×32 and 512×512 pixels.
+- [ ] Size change updates `setFixedSize()`, re-scales the renderer pixmap, and refreshes the alpha mask.
+- [ ] In `PetRenderer`, add a method to re-render at a new size (e.g., `set_size(w, h)` calling `_source.scaled(w, h)`).
+- [ ] In `config.py`, add `save_scale` / `load_scale` methods.
+- [ ] On app exit, save current scale; on startup, restore it.
+
+**Test:** Hover pet and scroll up → pet grows. Scroll down → pet shrinks. Size clamped between 32 and 512 px. Restart → size persists.
+
+---
+
+## Phase 12: PyInstaller Packaging
+
+### Step 12.1 — Single-file executable build
+
+- [ ] Ensure `pyinstaller` is installed: `pip install PyInstaller`.
+- [ ] Create a `pet.spec` or use CLI: `pyinstaller --onefile --windowed --add-data "src/assets;assets" --name "DesktopPet" src/main.py`.
+- [ ] The `--add-data` path separator is `;` on Windows (PowerShell/CMD), `:` on Bash. Use platform-appropriate syntax.
+- [ ] Verify the generated `dist/DesktopPet.exe` runs standalone — no Python, no venv needed.
+- [ ] Test on a clean machine (or after renaming the venv) that double-clicking the exe launches the pet without console window.
+
+**Test:** Double-click `dist/DesktopPet.exe`. Pet window appears, tray icon present. No terminal window, no Python dependency. Right-click tray → "Quit" works cleanly.
+
+---
+
 ## Summary: Milestone Checklist
 
 | # | Step | Milestone |
@@ -261,5 +317,9 @@
 | 7 | Click-and-drag repositioning | M3 ✓ |
 | 8 | System tray icon with Quit | M1 ✓ |
 | 9 | Config persistence (position + image path) | M2 ✓ |
+| 10 | Tray menu "更换宠物" file picker | M4 ✓ |
+| 11 | Drag & drop image onto pet | M4 |
+| 12 | Scroll wheel resize | M5 |
+| 13 | PyInstaller single-file exe | M5 |
 
-After completing all 8 phases, the base game is feature-complete: a pet that floats, follows, reacts, and persists.
+After completing all 12 phases, the app is ready to ship.
