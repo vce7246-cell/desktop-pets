@@ -1,4 +1,18 @@
-"""Desktop Pet — entry point."""
+"""Desktop Pet — entry point.
+
+Responsibilities of this file (UI layer only):
+- Create QApplication, PetWindow, QSystemTrayIcon
+- Wire MouseTracker → game-loop tick
+- Build tray menu actions (delegating business logic to services)
+- Handle shutdown (save state → stop timers → quit)
+- Ctrl+C signal handling
+
+All business logic lives in src/services/:
+  - DatabaseService  → persistence (image path, position, scale)
+  - ImageService     → format validation, path generation, default-pet check
+  - AIService        → background removal (rembg) and future AI features
+  - PetService       → pet lifecycle, hunger engine, image-change coordination
+"""
 import sys
 import signal
 from pathlib import Path
@@ -12,12 +26,14 @@ from PyQt6.QtWidgets import (
     QApplication, QFileDialog, QMenu, QMessageBox, QSystemTrayIcon,
 )
 
-from src.config import Config
-from src.image_processor import BackgroundRemover, make_output_path
-from src.pet_status import PetStatusEngine
+from src.services.database_service import DatabaseService
+from src.services.image_service import ImageService
+from src.services.ai_service import AIService
+from src.services.pet_service import PetService
+from src.ui.main_window import MainWindow
 from src.pet_window import PetWindow
 from src.mouse_tracker import MouseTracker
-from src.state_machine import PetStateMachine, PetState
+from src.state_machine import PetState
 
 
 def main() -> None:
@@ -25,112 +41,100 @@ def main() -> None:
     app.setApplicationName("DesktopPet")
     app.setQuitOnLastWindowClosed(False)
 
-    # --- Config persistence ---
-    config = Config()
+    # ==================================================================
+    # Service layer — all business logic lives here
+    # ==================================================================
+    db = DatabaseService()
+    image_svc = ImageService()
+    ai_svc = AIService()
 
-    # Load saved image path; fall back to default if missing or unreadable
-    image_path = config.load_image_path()
+    # ==================================================================
+    # Restore saved configuration
+    # ==================================================================
+    image_path = db.load_image_path()
     if image_path is not None and not Path(image_path).is_file():
         print(f"[CONFIG] Saved image not found: {image_path} — using default.")
         image_path = None
 
-    # Load saved scale; compute initial pixel size
-    saved_scale = config.load_scale()
+    saved_scale = db.load_scale()
     initial_size = int(PetWindow.BASE_SIZE * saved_scale)
     print(f"[CONFIG] Scale loaded: {saved_scale:.2f} → {initial_size}×{initial_size} px")
 
+    # ==================================================================
+    # Pet window (display layer)
+    # ==================================================================
     pet_window = PetWindow(image_path=image_path, initial_size=initial_size)
 
-    # Restore saved position (if available)
-    saved_x, saved_y = config.load_position()
+    saved_x, saved_y = db.load_position()
     if saved_x is not None and saved_y is not None:
         pet_window.set_position(saved_x, saved_y)
 
     pet_window.show()
 
-    # --- Persist image path when changed via drag & drop ---
-    pet_window.pet_image_changed.connect(config.save_image_path)
+    # Pet service coordinates PetWindow ↔ DatabaseService ↔ PetStatusEngine
+    pet_svc = PetService(pet_window, db)
 
-    # --- Mouse tracker + State machine (Phase 5) ---
+    # ==================================================================
+    # Management center window (hidden until user opens via tray)
+    # ==================================================================
+    center_window = MainWindow(pet_svc, image_svc, ai_svc, db, pet_window=pet_window)
+    # MainWindow is created once and shown/hidden; never recreated
+
+    # ==================================================================
+    # Mouse tracker → game-loop tick
+    # ==================================================================
     tracker = MouseTracker()
-    state_machine = PetStateMachine()
-
-    # --- Pet status engine (hunger / foraging) ---
-    status_engine = PetStatusEngine()
-
-    # Double-click pet → feed (for testing the status engine)
-    pet_window.feed_requested.connect(status_engine.feed_pet)
-
-    _tick_count = {"n": 0}
-    _prev_state = state_machine.current_state
 
     def _on_tick():
-        _tick_count["n"] += 1
-        nonlocal _prev_state
-
-        # Compute distance from cursor to pet window centre
+        """60 Hz game loop: evaluate state and sync hunger to UI."""
         pet_center = pet_window.frameGeometry().center()
         cursor_pos = tracker.current_pos
         dx = cursor_pos.x() - pet_center.x()
         dy = cursor_pos.y() - pet_center.y()
-        distance_to_pet = (dx ** 2 + dy ** 2) ** 0.5
 
-        # --- Determine state: drag overrides everything ---
+        # Fixed state: pet stays in IDLE (breathing animation), drag overrides
         if pet_window.is_dragging:
             new_state = PetState.DRAGGED
         else:
-            new_state = state_machine.update(
-                cursor_speed=tracker.smoothed_speed,
-                distance_to_pet=distance_to_pet,
-                mouse_still_duration=tracker.still_duration,
-            )
+            new_state = PetState.IDLE
 
-        # Print state transitions
-        if new_state != _prev_state:
-            print(f"[STATE] {_prev_state.name} → {new_state.name}")
-            _prev_state = new_state
-
-        # Visual feedback (pet stays in place — no auto-following)
         pet_window.set_pet_state(new_state)
-
-        # Debug output every 15 ticks (~4×/sec)
-        if _tick_count["n"] % 15 == 0:
-            print(
-                f"[TRACKER] speed={tracker.smoothed_speed:6.0f} px/s  "
-                f"dist={distance_to_pet:5.0f} px  "
-                f"still={tracker.still_duration:4.1f}s  "
-                f"state={new_state.name}"
-            )
+        pet_window.set_hunger(pet_svc.hunger)
 
     tracker.ticked.connect(_on_tick)
     tracker.start()
 
-    # --- Clean shutdown function (Step 7.3) ---
+    # ==================================================================
+    # Shutdown
+    # ==================================================================
+
     def _do_clean_shutdown():
-        """Shut down cleanly: save position + scale → stop tracker → close window → hide tray → quit."""
-        # Save current pet position before closing
+        """Save state → stop tracker → close window → hide tray → quit."""
         px, py = pet_window.get_position()
-        config.save_position(px, py)
+        db.save_position(px, py)
         print(f"[CONFIG] Position saved: ({px}, {py})")
 
-        # Save current scale
-        config.save_scale(pet_window.scale)
+        db.save_scale(pet_window.scale)
         print(f"[CONFIG] Scale saved: {pet_window.scale:.2f}")
 
         tracker.stop()
         pet_window.close()
+        center_window.close()
         tray_icon.hide()
         app.quit()
 
-    # --- System tray icon (Step 7.2) ---
+    # ==================================================================
+    # System tray (UI layer — delegates business logic to services)
+    # ==================================================================
     assets_dir = Path(__file__).resolve().parent / "assets"
     tray_icon_path = str(assets_dir / "default_pet.png")
     tray_icon = QSystemTrayIcon(QIcon(tray_icon_path), parent=app)
 
     tray_menu = QMenu()
 
-    # Change Pet action
+    # --- "更换宠物" action ---
     def _change_pet():
+        """Open file dialog → delegate to PetService for display + persistence."""
         file_path, _ = QFileDialog.getOpenFileName(
             None,
             "选择宠物图片",
@@ -138,35 +142,32 @@ def main() -> None:
             "图片文件 (*.png *.jpg *.jpeg *.gif *.webp);;所有文件 (*.*)",
         )
         if file_path:
-            pet_window.set_image(file_path)
-            config.save_image_path(file_path)
+            pet_svc.change_image(file_path)
             print(f"[CONFIG] Image path saved: {file_path}")
 
     change_action = QAction("更换宠物 (&C)…", tray_menu)
     change_action.triggered.connect(_change_pet)
     tray_menu.addAction(change_action)
 
-    # --- Remove background action ---
+    # --- "去除背景" action ---
     def _remove_background():
-        current_path = pet_window.current_image_path
-
+        """Validate → delegate AI processing to AIService → update pet via PetService."""
         # Guard: don't process the built-in default pet
-        if current_path == str(assets_dir / "default_pet.png"):
+        if pet_svc.is_using_default_pet():
             QMessageBox.information(None, "提示", "默认宠物图片无需去除背景。")
             return
 
+        current_path = pet_svc.current_image_path
         if not Path(current_path).is_file():
             QMessageBox.warning(None, "去除背景失败", "当前图片文件不存在，请先更换宠物图片。")
             return
 
-        output_path = make_output_path(current_path)
-
-        remover = BackgroundRemover(current_path, output_path, parent=app)
+        output_path = image_svc.make_output_path(current_path)
+        remover = ai_svc.remove_background(current_path, output_path, parent=app)
         tray_icon.setToolTip("桌面宠物 — 正在去除背景…")
 
         def _on_finished(path: str):
-            pet_window.set_image(path)
-            config.save_image_path(path)
+            pet_svc.change_image(path)
             tray_icon.setToolTip("桌面宠物")
             tray_icon.showMessage(
                 "桌面宠物", "背景去除完成！", QSystemTrayIcon.MessageIcon.Information, 3000,
@@ -188,6 +189,20 @@ def main() -> None:
 
     tray_menu.addSeparator()
 
+    # --- "管理中心" action ---
+    def _open_center():
+        """Show the Desktop Pet Center management window."""
+        center_window.show()
+        center_window.raise_()
+        center_window.activateWindow()
+
+    center_action = QAction("管理中心 (&M)…", tray_menu)
+    center_action.triggered.connect(_open_center)
+    tray_menu.addAction(center_action)
+
+    tray_menu.addSeparator()
+
+    # --- "退出" action ---
     quit_action = QAction("退出 (&Q)", tray_menu)
     quit_action.triggered.connect(_do_clean_shutdown)
     tray_menu.addAction(quit_action)
@@ -196,13 +211,16 @@ def main() -> None:
     tray_icon.setToolTip("桌面宠物")
     tray_icon.show()
 
-    # Ensure closeEvent fires when app quits
+    # ==================================================================
+    # App-level lifecycle hooks
+    # ==================================================================
     app.aboutToQuit.connect(pet_window.close)
+    app.aboutToQuit.connect(center_window.close)
     app.aboutToQuit.connect(tracker.stop)
 
-    # --- Ctrl+C handling on Windows ---
-    # Qt's event loop blocks Python signal delivery. A periodic QTimer
-    # forces Python to process pending signals every 100 ms.
+    # ==================================================================
+    # Ctrl+C handling (Windows)
+    # ==================================================================
     _shutdown = {"flag": False}
 
     def _on_interrupt(sig, frame):
@@ -211,7 +229,6 @@ def main() -> None:
     signal.signal(signal.SIGINT, _on_interrupt)
 
     def _check_shutdown():
-        # Do a tiny Python operation so signals can be delivered
         if _shutdown["flag"]:
             _do_clean_shutdown()
 

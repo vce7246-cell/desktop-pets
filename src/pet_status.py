@@ -9,7 +9,7 @@ class PetStatusEngine(QObject):
     """
 
     _HUNGER_DECAY_RATE = 2       # points per tick
-    _HUNGER_DECAY_INTERVAL = 10_000  # ms — 10 s for testing
+    _HUNGER_DECAY_INTERVAL = 30_000  # ms — 每30秒衰减2点
     _HUNGER_FEED_AMOUNT = 30     # points restored per feed
     _HUNGER_MAX = 100
     _HUNGER_MIN = 0

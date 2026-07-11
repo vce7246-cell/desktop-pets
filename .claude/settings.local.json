@@ -2,7 +2,38 @@
   "permissions": {
     "allow": [
       "Bash(python -c \"from src.main import main; from src.pet_window import PetWindow; from src.state_machine import PetStateMachine, PetState; from src.pet_renderer import PetRenderer; from src.mouse_tracker import MouseTracker; from src.config import Config; print\\('All modules importable'\\)\")",
-      "Bash(venv/Scripts/pip.exe install *)"
+      "Bash(venv/Scripts/pip.exe install *)",
+      "Bash(taskkill /F /IM python.exe)",
+      "Bash(taskkill /F /IM pythonw.exe)",
+      "Bash(tasklist)",
+      "Bash(sleep 5 && cat \"C:/Users/86139/Desktop/debug_hover.log\" 2>/dev/null || echo \"日志文件不存在\")",
+      "Read(//c/Users/86139/Desktop/**)",
+      "Bash(\"d:/AAAAA龙正扬/desktop-pets/venv/Scripts/python.exe\" -c \"import sys; print\\('start', file=sys.stderr\\); sys.path.insert\\(0, '.'\\); from PyQt6.QtWidgets import QApplication; app = QApplication.instance\\(\\) or QApplication\\([]\\); print\\('QApp OK', file=sys.stderr\\); from src.database.db_manager import DatabaseManager; print\\('DB OK', file=sys.stderr\\)\")",
+      "Bash(\"d:/AAAAA龙正扬/desktop-pets/venv/Scripts/python.exe\" \"d:/AAAAA龙正扬/desktop-pets/_mini_test.py\")",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(\"d:/AAAAA龙正扬/desktop-pets/venv/Scripts/python.exe\" \"d:/AAAAA龙正扬/desktop-pets/_mini_test2.py\")",
+      "Bash(\"../venv/Scripts/python.exe\" qa_test_suite.py)",
+      "Bash(venv/Scripts/python tests/qa_test_suite.py)",
+      "Bash(venv/Scripts/python -m tests.qa_test_suite)",
+      "Bash(cp \"d:/AAAAA龙正扬/desktop-pets/tests/qa_test_suite.py\" \"/tmp/qa_test.py\")",
+      "Bash(/d/AAAAA龙正扬/desktop-pets/venv/Scripts/python /tmp/qa_test.py)",
+      "Bash(d:/AAAAA龙正扬/desktop-pets/venv/Scripts/python -c ' *)",
+      "Bash(\"d:/AAAAA龙正扬/desktop-pets/venv/Scripts/python\" /tmp/test_runner.py)",
+      "Bash(\"d:/AAAAA龙正扬/desktop-pets/venv/Scripts/python\" /tmp/qa_test.py)",
+      "Bash(venv/Scripts/python /tmp/qa_test.py)",
+      "Bash(venv/Scripts/python -c ' *)",
+      "Bash(\"d:/AAAAA龙正扬/desktop-pets/venv/Scripts/python\" /tmp/_qa_run.py)",
+      "Bash(PYTHONPATH=\"d:/AAAAA龙正扬/desktop-pets\" \"d:/AAAAA龙正扬/desktop-pets/venv/Scripts/python\" /tmp/_qa_run.py)",
+      "Bash(cp \"d:/AAAAA龙正扬/desktop-pets/_qa_run.py\" /tmp/_qa_run.py)",
+      "Bash(PYTHONPATH=\"d:/AAAAA龙正扬/desktop-pets\" venv/Scripts/python /tmp/_qa_run.py)",
+      "Bash(python -c \"import PyQt6; print\\('PyQt6', PyQt6.__file__\\)\")",
+      "Bash(pip show *)",
+      "Bash(rm -rf build dist)",
+      "Bash(pyinstaller DesktopPet.spec)"
+    ],
+    "additionalDirectories": [
+      "\\tmp",
+      "d:\\tmp"
     ]
   }
 }
