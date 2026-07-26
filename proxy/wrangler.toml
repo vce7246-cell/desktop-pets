@@ -1,0 +1,36 @@
+# Cloudflare Workers — Desktop Pet Pixel Art Proxy
+# =================================================
+#
+# Quick start (Agnes AI):
+#   1. 在 platform.agnes-ai.com 注册并获取 API Key
+#   2. cd proxy
+#   3. npx wrangler secret put OPENAI_API_KEY
+#      → 粘贴你的 Agnes AI API Key
+#   4. npx wrangler deploy
+#   5. 将部署后的 URL 填入桌面应用 .env 的 PIXEL_PROXY_URL
+#
+# 变量说明:
+#   OPENAI_BASE_URL          — Agnes API 基础地址
+#   OPENAI_IMAGE_ENDPOINT    — 图片生成接口路径
+#   OPENAI_IMAGE_MODEL       — 模型名称 (agnes-image-2.1-flash 支持图生图)
+#   OPENAI_IMAGE_SIZE        — 生成图片尺寸
+#
+# 桌面应用不会持有 OPENAI_API_KEY。Key 仅存储在 Worker secret 中。
+
+name = "desktop-pet-pixel-proxy"
+main = "worker.js"
+compatibility_date = "2025-07-01"
+
+# ── Upstream API 配置 ──────────────────────────────────────────────────
+# 默认值指向 Agnes AI 图片生成接口。
+# 如需切换回 OpenAI 或其他兼容服务，修改以下变量即可。
+[vars]
+OPENAI_BASE_URL = "https://apihub.agnes-ai.com"
+OPENAI_IMAGE_ENDPOINT = "/v1/images/generations"
+OPENAI_IMAGE_MODEL = "agnes-image-2.1-flash"
+OPENAI_IMAGE_SIZE = "1024x1024"
+
+# ── Observability (optional, remove to disable) ───────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1

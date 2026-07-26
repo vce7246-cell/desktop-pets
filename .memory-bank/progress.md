@@ -1,8 +1,27 @@
 # Progress Tracking
 
-> Last updated: 2026-07-03
+> Last updated: 2026-07-26
 
-## Current Status: 状态管理引擎已植入 ✓ — Phase 12（打包）待做
+## Current Status: 像素风生成链路完整可用（上游已切换为 Agnes AI）
+
+---
+
+## 🆕 像素风桌宠生成
+
+- [x] 创建桌宠页支持两种模式：原图去背景 / 像素风生成
+- [x] 像素风流程：上传 → 原图预览 → 生成中 → 结果预览 → 重新生成 / 设为桌宠
+- [x] 生成过程中禁止重复提交
+- [x] 上传新图片会清空上一次结果
+- [x] 失败时保留原图，允许重新生成
+- [x] 服务层隔离：`AIService.generate_pixel_art()` + `OpenAIPixelGenerator`
+- [x] 无代理配置时使用本地 Pillow 像素化回退
+- [x] 有 `PIXEL_PROXY_URL` 时通过 Cloudflare Worker 代理调用 AI 图片接口
+- [x] 桌面端不保存 API Key；Key 存在 Worker secret `OPENAI_API_KEY`
+- [x] 生成结果保存为现有桌宠资源，复用桌宠列表/切换逻辑
+- [x] `pets.is_pixel_art` 字段向后兼容；旧宠物默认普通渲染
+- [x] 像素风桌宠使用 nearest-neighbour 缩放，普通桌宠不受影响
+- [x] 上游已从 OpenAI 切换为 Agnes AI (`agnes-image-2.1-flash`)，Worker 已重新部署
+- [x] 真实代理生成验证通过
 
 ---
 
